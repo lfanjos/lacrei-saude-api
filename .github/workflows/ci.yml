@@ -1,0 +1,326 @@
+name: CI/CD Pipeline - Lacrei Saúde API
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  PYTHON_VERSION: '3.12'
+  NODE_VERSION: '18'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # ========================
+  # JOB 1: LINT & FORMATTING
+  # ========================
+  lint:
+    name: 🔍 Lint & Format
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+
+    - name: 🐍 Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: 📦 Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: 1.7.0
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+
+    - name: 🔄 Load Cached Dependencies
+      id: cached-poetry-dependencies
+      uses: actions/cache@v3
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
+
+    - name: 📚 Install Dependencies
+      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+      run: poetry install --with dev
+
+    - name: 🎨 Run Black (Format Check)
+      run: |
+        poetry run black --check --diff .
+      continue-on-error: false
+
+    - name: 🔧 Run isort (Import Sort Check) 
+      run: |
+        poetry run isort --check-only --diff .
+      continue-on-error: false
+
+    - name: 📏 Run Flake8 (Linting)
+      run: |
+        poetry run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        poetry run flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      continue-on-error: false
+
+  # ========================
+  # JOB 2: SECURITY ANALYSIS
+  # ========================
+  security:
+    name: 🔒 Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+
+    - name: 🐍 Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: 📦 Install Poetry
+      uses: snok/install-poetry@v1
+
+    - name: 🛡️ Run Safety (Vulnerability Check)
+      run: |
+        pip install safety
+        safety check --json --output safety-report.json || true
+      continue-on-error: true
+
+    - name: 📋 Upload Safety Report
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: safety-report
+        path: safety-report.json
+
+  # ========================
+  # JOB 3: TESTS & COVERAGE
+  # ========================
+  test:
+    name: 🧪 Tests & Coverage
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_lacrei_saude
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+      DEBUG: False
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_lacrei_saude
+      DJANGO_SETTINGS_MODULE: lacrei_saude.settings_test
+
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+
+    - name: 🐍 Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: 📦 Install Poetry
+      uses: snok/install-poetry@v1
+
+    - name: 🔄 Load Cached Dependencies
+      id: cached-poetry-dependencies
+      uses: actions/cache@v3
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
+
+    - name: 📚 Install Dependencies
+      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+      run: poetry install --with dev
+
+    - name: 🗃️ Run Database Migrations
+      run: |
+        poetry run python manage.py migrate --noinput
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_lacrei_saude
+
+    - name: 🧪 Run Tests with Coverage
+      run: |
+        poetry run pytest \
+          --cov=. \
+          --cov-report=term-missing \
+          --cov-report=xml:coverage.xml \
+          --cov-report=html:htmlcov \
+          --cov-config=.coveragerc \
+          --cov-branch \
+          --cov-fail-under=50 \
+          --junitxml=pytest-results.xml \
+          --tb=short \
+          -v
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_lacrei_saude
+
+    - name: 📊 Upload Coverage to Codecov
+      uses: codecov/codecov-action@v3
+      if: always()
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: lacrei-saude-coverage
+        fail_ci_if_error: false
+
+    - name: 📋 Upload Test Results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results
+        path: |
+          pytest-results.xml
+          coverage.xml
+          htmlcov/
+
+    - name: 📈 Coverage Comment
+      if: github.event_name == 'pull_request'
+      uses: py-cov-action/python-coverage-comment-action@v3
+      with:
+        GITHUB_TOKEN: ${{ github.token }}
+        MINIMUM_GREEN: 70
+        MINIMUM_ORANGE: 50
+
+  # ========================
+  # JOB 4: BUILD APPLICATION
+  # ========================
+  build:
+    name: 🏗️ Build Application
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+
+    - name: 🐍 Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: 📦 Install Poetry
+      uses: snok/install-poetry@v1
+
+    - name: 🔄 Load Cached Dependencies
+      uses: actions/cache@v3
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
+
+    - name: 📚 Install Dependencies
+      run: poetry install --only=main
+
+    - name: 🏗️ Build Application Package
+      run: |
+        poetry build
+        echo "📦 Package built successfully!"
+        ls -la dist/
+
+    - name: 📋 Upload Build Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: python-package
+        path: dist/
+
+  # ========================
+  # JOB 5: BUILD DOCKER IMAGE
+  # ========================
+  docker:
+    name: 🐳 Build Docker Image
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+
+    - name: 🐳 Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: 🔐 Login to Container Registry
+      if: github.event_name != 'pull_request'
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: 📊 Extract Metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: 🏗️ Build and Push Docker Image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        platforms: linux/amd64,linux/arm64
+        push: ${{ github.event_name != 'pull_request' }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: 🛡️ Run Docker Security Scan
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tags }}
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+      continue-on-error: true
+
+    - name: 📋 Upload Security Scan Results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  # ========================
+  # JOB 6: NOTIFICATION
+  # ========================
+  notify:
+    name: 📢 Send Notifications
+    runs-on: ubuntu-latest
+    needs: [lint, test, build, docker]
+    if: always()
+    
+    steps:
+    - name: 📢 Pipeline Status
+      run: |
+        echo "📊 Pipeline Status Summary:"
+        echo "🔍 Lint: ${{ needs.lint.result }}"
+        echo "🧪 Tests: ${{ needs.test.result }}" 
+        echo "🏗️ Build: ${{ needs.build.result }}"
+        echo "🐳 Docker: ${{ needs.docker.result }}"
+        
+        if [[ "${{ needs.lint.result }}" == "success" && "${{ needs.test.result }}" == "success" ]]; then
+          echo "✅ Pipeline completed successfully!"
+        else
+          echo "❌ Pipeline failed!"
+          exit 1
+        fi

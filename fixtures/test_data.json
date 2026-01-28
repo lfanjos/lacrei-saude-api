@@ -1,0 +1,139 @@
+[
+  {
+    "model": "auth.user",
+    "pk": 1,
+    "fields": {
+      "username": "admin@test.com",
+      "email": "admin@test.com",
+      "first_name": "Admin",
+      "last_name": "Sistema",
+      "is_active": true,
+      "is_staff": true,
+      "is_superuser": true,
+      "tipo_usuario": "ADMIN",
+      "date_joined": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "auth.user", 
+    "pk": 2,
+    "fields": {
+      "username": "paciente1@test.com",
+      "email": "paciente1@test.com",
+      "first_name": "João",
+      "last_name": "Paciente",
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "tipo_usuario": "PACIENTE",
+      "date_joined": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 3, 
+    "fields": {
+      "username": "paciente2@test.com",
+      "email": "paciente2@test.com",
+      "first_name": "Maria",
+      "last_name": "Silva",
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "tipo_usuario": "PACIENTE",
+      "date_joined": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "profissionais.endereco",
+    "pk": 1,
+    "fields": {
+      "logradouro": "Rua Augusta",
+      "numero": "123",
+      "complemento": "Sala 45",
+      "bairro": "Centro",
+      "cidade": "São Paulo",
+      "estado": "SP",
+      "cep": "01234567",
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "profissionais.endereco",
+    "pk": 2,
+    "fields": {
+      "logradouro": "Avenida Paulista",
+      "numero": "1000",
+      "bairro": "Bela Vista", 
+      "cidade": "São Paulo",
+      "estado": "SP",
+      "cep": "98765432",
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "profissionais.profissional",
+    "pk": 1,
+    "fields": {
+      "nome_social": "Dr. João Silva",
+      "nome_registro": "João Silva Santos",
+      "profissao": "MEDICO",
+      "registro_profissional": "CRM123456",
+      "especialidade": "Cardiologia",
+      "email": "dr.joao@lacrei.com",
+      "telefone": "11987654321",
+      "whatsapp": "11999888777",
+      "endereco": 1,
+      "biografia": "Médico cardiologista com 15 anos de experiência em atendimento humanizado.",
+      "aceita_convenio": true,
+      "valor_consulta": "150.00",
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "profissionais.profissional",
+    "pk": 2,
+    "fields": {
+      "nome_social": "Dra. Maria Santos",
+      "nome_registro": "Maria Santos Lima",
+      "profissao": "PSICOLOGO", 
+      "registro_profissional": "CRP789123",
+      "especialidade": "Psicologia Clínica",
+      "email": "dra.maria@lacrei.com",
+      "telefone": "11888777666",
+      "endereco": 2,
+      "biografia": "Psicóloga especializada em terapia cognitivo-comportamental e acolhimento LGBTQIA+.",
+      "aceita_convenio": false,
+      "valor_consulta": "120.00",
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "profissionais.profissional",
+    "pk": 3,
+    "fields": {
+      "nome_social": "Dr. Carlos Nutricionista",
+      "nome_registro": "Carlos Alberto Nutrição",
+      "profissao": "NUTRICIONISTA",
+      "registro_profissional": "CRN456789", 
+      "especialidade": "Nutrição Esportiva",
+      "email": "dr.carlos@lacrei.com",
+      "telefone": "11777666555",
+      "endereco": 1,
+      "biografia": "Nutricionista especializado em alimentação para pessoas trans e LGBTQIA+.",
+      "aceita_convenio": true,
+      "valor_consulta": "100.00",
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
+    }
+  }
+]

@@ -1,0 +1,60 @@
+# Docker Compose Development - Lacrei Saúde API
+# ==============================================
+
+version: '3.8'
+
+services:
+  # Banco de Dados PostgreSQL
+  db:
+    image: postgres:16-alpine
+    container_name: lacrei_db_dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: lacrei_saude_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - lacrei_network_dev
+
+  # Aplicação Django (Development)
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lacrei_api_dev
+    restart: unless-stopped
+    environment:
+      - DEBUG=True
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=lacrei_saude_db
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres123
+      - SECRET_KEY=django-insecure-dev-key-change-in-production
+      - ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0
+    volumes:
+      - .:/app
+      - static_volume_dev:/app/staticfiles
+    ports:
+      - "8001:8000"
+    networks:
+      - lacrei_network_dev
+    depends_on:
+      - db
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             python manage.py runserver 0.0.0.0:8000"
+
+volumes:
+  postgres_data_dev:
+  static_volume_dev:
+
+networks:
+  lacrei_network_dev:
+    driver: bridge

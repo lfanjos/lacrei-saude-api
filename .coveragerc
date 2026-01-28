@@ -1,0 +1,105 @@
+# Coverage.py configuration for Lacrei Saúde API
+# ================================================
+
+[run]
+# Fonte dos arquivos para análise de cobertura
+source = .
+branch = True
+concurrency = multiprocessing
+parallel = True
+
+# Incluir arquivos
+include = 
+    */profissionais/*
+    */consultas/*
+    */authentication/*
+    */lacrei_saude/*
+
+# Excluir arquivos e diretórios
+omit = 
+    # Arquivos do Django
+    */migrations/*
+    */venv/*
+    */env/*
+    */site-packages/*
+    
+    # Arquivos de configuração
+    manage.py
+    */settings/*
+    */wsgi.py
+    */asgi.py
+    
+    # Arquivos de teste
+    */test_*
+    */tests/*
+    */*test*
+    conftest.py
+    
+    # Arquivos de desenvolvimento
+    */fixtures/*
+    */__pycache__/*
+    */.git/*
+    */htmlcov/*
+    */docs/*
+    */static/*
+    */media/*
+    
+    # Arquivos específicos
+    */.*
+    *.pyc
+    */node_modules/*
+
+[report]
+# Configurações do relatório
+show_missing = True
+skip_covered = False
+skip_empty = True
+precision = 2
+
+# Excluir linhas específicas
+exclude_lines =
+    # Pragma para excluir linhas específicas
+    pragma: no cover
+    
+    # Funções de debug que nunca são executadas
+    def __repr__
+    def __str__
+    
+    # Código que só roda em debug
+    if self\.debug:
+    if settings\.DEBUG
+    
+    # Imports condicionais
+    try:
+    except ImportError:
+    
+    # Código não testável
+    raise AssertionError
+    raise NotImplementedError
+    
+    # Abstract methods
+    @(abc\.)?abstractmethod
+    
+    # TYPE_CHECKING blocks
+    if TYPE_CHECKING:
+    
+    # Main blocks
+    if __name__ == .__main__.:
+
+[html]
+# Configurações do relatório HTML
+directory = htmlcov
+title = Lacrei Saúde API - Coverage Report
+
+# Arquivos CSS customizados
+extra_css = coverage_custom.css
+
+[xml]
+# Configurações do relatório XML
+output = coverage.xml
+
+[paths]
+# Normalização de caminhos
+source = 
+    .
+    */site-packages/

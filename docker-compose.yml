@@ -1,0 +1,93 @@
+# Docker Compose - Lacrei Saúde API
+# ==================================
+
+version: '3.8'
+
+services:
+  # Banco de Dados PostgreSQL
+  db:
+    image: postgres:16-alpine
+    container_name: lacrei_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: lacrei_saude_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init-db:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - lacrei_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Aplicação Django
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lacrei_api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DEBUG=True
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    ports:
+      - "8000:8000"
+    networks:
+      - lacrei_network
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # Redis (para cache e sessões)
+  redis:
+    image: redis:7-alpine
+    container_name: lacrei_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - lacrei_network
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+# Volumes
+volumes:
+  postgres_data:
+    driver: local
+  static_volume:
+    driver: local
+  media_volume:
+    driver: local
+  redis_data:
+    driver: local
+
+# Networks
+networks:
+  lacrei_network:
+    driver: bridge
+    name: lacrei_network

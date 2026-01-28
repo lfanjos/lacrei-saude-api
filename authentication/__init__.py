@@ -1,0 +1,1 @@
+# Authentication app para Lacrei Saúde API
