@@ -203,6 +203,7 @@ jobs:
       with:
         context: .
         file: ./Dockerfile
+        load: true
         push: false
         tags: lacrei-saude-api:latest
         cache-from: type=gha
@@ -210,6 +211,9 @@ jobs:
 
     - name: 🧪 Test Docker Image
       run: |
+        echo "🐳 Listing available Docker images:"
+        docker images lacrei-saude-api:latest
+        echo "🧪 Testing Docker image..."
         docker run --rm lacrei-saude-api:latest python --version
         echo "✅ Docker image test passed!"
 
