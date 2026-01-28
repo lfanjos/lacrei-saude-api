@@ -1,38 +1,36 @@
-[project]
+[tool.poetry]
 name = "lacrei-saude-api"
 version = "0.1.0"
 description = "API RESTful para gerenciamento de consultas médicas - Lacrei Saúde"
-authors = [
-    {name = "Lucas Felipe dos Anjos",email = "lfanjosus@gmail.com"}
-]
-requires-python = ">=3.12,<4.0"
-dependencies = [
-    "django (>=6.0.1,<7.0.0)",
-    "djangorestframework (>=3.16.1,<4.0.0)",
-    "python-decouple (>=3.8,<4.0)",
-    "psycopg2-binary (>=2.9.11,<3.0.0)",
-    "django-cors-headers (>=4.9.0,<5.0.0)",
-    "django-filter (>=24.3,<25.0)",
-    "drf-yasg (>=1.21.7,<2.0.0)",
-    "djangorestframework-simplejwt (>=5.3.1,<6.0.0)",
-    "django-ratelimit (>=4.1.0,<5.0.0)"
-]
+authors = ["Lucas Felipe dos Anjos <lfanjosus@gmail.com>"]
+readme = "README.md"
+packages = [{include = "lacrei_saude"}, {include = "authentication"}, {include = "profissionais"}, {include = "consultas"}]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+django = "^6.0.1"
+djangorestframework = "^3.16.1"
+python-decouple = "^3.8"
+psycopg2-binary = "^2.9.11"
+django-cors-headers = "^4.9.0"
+django-filter = "^24.3"
+drf-yasg = "^1.21.7"
+djangorestframework-simplejwt = "^5.3.1"
+django-ratelimit = "^4.1.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^9.0.2"
+pytest-django = "^4.11.1"
+coverage = "^7.13.2"
+black = "^26.1.0"
+flake8 = "^7.3.0"
+isort = "^7.0.0"
+pytest-cov = "^6.0.0"
+safety = "^3.2.0"
 
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
-
-[dependency-groups]
-dev = [
-    "pytest (>=9.0.2,<10.0.0)",
-    "pytest-django (>=4.11.1,<5.0.0)",
-    "coverage (>=7.13.2,<8.0.0)",
-    "black (>=26.1.0,<27.0.0)",
-    "flake8 (>=7.3.0,<8.0.0)",
-    "isort (>=7.0.0,<8.0.0)",
-    "pytest-cov (>=6.0.0,<7.0.0)",
-    "safety (>=3.2.0,<4.0.0)"
-]
 
 # Black configuration
 [tool.black]
