@@ -8,24 +8,24 @@ import os
 from .settings import *
 
 # Database para testes - usar PostgreSQL se disponível, senão SQLite
-DATABASE_URL = os.getenv('DATABASE_URL')
-if DATABASE_URL and 'postgresql' in DATABASE_URL:
+DATABASE_URL = os.getenv("DATABASE_URL")
+if DATABASE_URL and "postgresql" in DATABASE_URL:
     # Usar PostgreSQL no CI
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'test_lacrei_saude',
-            'USER': 'postgres',
-            'PASSWORD': 'postgres',
-            'HOST': 'localhost',
-            'PORT': '5432',
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": "test_lacrei_saude",
+            "USER": "postgres",
+            "PASSWORD": "postgres",
+            "HOST": "localhost",
+            "PORT": "5432",
         }
     }
 else:
     # Usar SQLite para testes locais
     DATABASES = {
         "default": {
-            "ENGINE": "django.db.backends.sqlite3", 
+            "ENGINE": "django.db.backends.sqlite3",
             "NAME": ":memory:",
         }
     }
