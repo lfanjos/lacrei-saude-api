@@ -159,7 +159,6 @@ htmlcov/
 .coverage
 coverage.xml
 coverage.json
-COVERAGE_REPORT.md
 
 
 # pytest
