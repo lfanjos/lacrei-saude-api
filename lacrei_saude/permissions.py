@@ -19,9 +19,9 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
 
         # Permissões de escrita são apenas permitidas ao proprietário do objeto.
         # Para modelos que não têm campo 'owner', permitir para usuários autenticados
-        if hasattr(obj, 'owner'):
+        if hasattr(obj, "owner"):
             return obj.owner == request.user
-        
+
         # Para objetos sem proprietário específico, permitir para usuários autenticados
         return request.user.is_authenticated
 
@@ -49,9 +49,9 @@ class IsProfissionalOrReadOnly(permissions.BasePermission):
 
         # Escrita apenas para o próprio profissional
         # Assumindo que existe um relacionamento user no modelo Profissional
-        if hasattr(obj, 'user'):
+        if hasattr(obj, "user"):
             return obj.user == request.user
-        
+
         # Se não há relacionamento com user, permitir para usuários autenticados
         return request.user.is_authenticated
 
@@ -73,7 +73,7 @@ class CanManageConsultas(permissions.BasePermission):
         # Para consultas, permitir edição para:
         # 1. Profissional responsável pela consulta
         # 2. Staff/admin
-        if hasattr(obj, 'profissional') and hasattr(obj.profissional, 'user'):
+        if hasattr(obj, "profissional") and hasattr(obj.profissional, "user"):
             if obj.profissional.user == request.user:
                 return True
 

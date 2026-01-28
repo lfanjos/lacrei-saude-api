@@ -15,15 +15,15 @@ class IsOwnerOrAdmin(permissions.BasePermission):
         # Admins e superusers podem acessar tudo
         if request.user.is_superuser or request.user.is_admin:
             return True
-        
+
         # Usuários podem acessar apenas seus próprios dados
-        if hasattr(obj, 'user'):
+        if hasattr(obj, "user"):
             return obj.user == request.user
-        
+
         # Para modelos User
-        if hasattr(obj, 'id'):
+        if hasattr(obj, "id"):
             return obj.id == request.user.id
-            
+
         return False
 
 
@@ -33,9 +33,8 @@ class IsProfissionalOrAdmin(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
-        return (
-            request.user.is_authenticated and 
-            (request.user.is_profissional or request.user.is_admin or request.user.is_superuser)
+        return request.user.is_authenticated and (
+            request.user.is_profissional or request.user.is_admin or request.user.is_superuser
         )
 
 
@@ -48,17 +47,16 @@ class IsOwnerProfissionalOrAdmin(permissions.BasePermission):
         # Admins sempre podem acessar
         if request.user.is_superuser or request.user.is_admin:
             return True
-        
+
         # Profissional responsável pela consulta
-        if hasattr(obj, 'profissional') and obj.profissional:
-            if (request.user.is_profissional and 
-                request.user.profissional == obj.profissional):
+        if hasattr(obj, "profissional") and obj.profissional:
+            if request.user.is_profissional and request.user.profissional == obj.profissional:
                 return True
-        
+
         # Proprietário do objeto (para usuários/pacientes)
-        if hasattr(obj, 'user'):
+        if hasattr(obj, "user"):
             return obj.user == request.user
-            
+
         return False
 
 
@@ -68,9 +66,8 @@ class IsVerifiedUser(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
-        return (
-            request.user.is_authenticated and 
-            (request.user.is_verified or request.user.is_admin or request.user.is_superuser)
+        return request.user.is_authenticated and (
+            request.user.is_verified or request.user.is_admin or request.user.is_superuser
         )
 
 
@@ -80,10 +77,8 @@ class CanManageUsers(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
-        return (
-            request.user.is_authenticated and 
-            (request.user.is_admin or request.user.is_superuser or 
-             (request.user.is_staff and request.user.user_type == 'STAFF'))
+        return request.user.is_authenticated and (
+            request.user.is_admin or request.user.is_superuser or (request.user.is_staff and request.user.user_type == "STAFF")
         )
 
 
@@ -99,14 +94,14 @@ class ReadOnlyOrOwner(permissions.BasePermission):
         # Leitura permitida para usuários autenticados
         if request.method in permissions.SAFE_METHODS:
             return True
-        
+
         # Escrita apenas para o proprietário ou admins
         if request.user.is_admin or request.user.is_superuser:
             return True
-            
-        if hasattr(obj, 'user'):
+
+        if hasattr(obj, "user"):
             return obj.user == request.user
-        
+
         return obj == request.user
 
 
@@ -117,18 +112,18 @@ class APIKeyPermission(permissions.BasePermission):
 
     def has_permission(self, request, view):
         # Se não é autenticação por API Key, usar permissões padrão
-        if not hasattr(request, 'auth') or not hasattr(request.auth, 'permissions'):
+        if not hasattr(request, "auth") or not hasattr(request.auth, "permissions"):
             return True
-        
+
         api_key = request.auth
         endpoint = f"{request.method.lower()}:{view.get_view_name().lower()}"
-        
+
         # Verificar se a API Key tem permissão para este endpoint
-        allowed_endpoints = api_key.permissions.get('endpoints', [])
-        
-        if '*' in allowed_endpoints:
+        allowed_endpoints = api_key.permissions.get("endpoints", [])
+
+        if "*" in allowed_endpoints:
             return True
-            
+
         return endpoint in allowed_endpoints
 
 
@@ -136,14 +131,14 @@ class ThrottlePermission(permissions.BasePermission):
     """
     Permissão que considera rate limiting por tipo de usuário
     """
-    
+
     def has_permission(self, request, view):
         if not request.user.is_authenticated:
             return True  # Rate limiting será aplicado pelo middleware
-        
+
         # Admins têm rate limits mais altos
         if request.user.is_admin or request.user.is_superuser:
             return True
-            
+
         # Rate limiting específico será aplicado pelo middleware
         return True
