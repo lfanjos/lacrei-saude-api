@@ -30,22 +30,29 @@ jobs:
         virtualenvs-create: true
         virtualenvs-in-project: true
 
-    - name: 🔄 Load cached venv
-      id: cached-poetry-dependencies
-      uses: actions/cache@v4
-      with:
-        path: .venv
-        key: venv-${{ runner.os }}-3.12-${{ hashFiles('**/poetry.lock') }}
+    # Temporarily disable cache to ensure clean dependency installation
+    # - name: 🔄 Load cached venv
+    #   id: cached-poetry-dependencies  
+    #   uses: actions/cache@v4
+    #   with:
+    #     path: .venv
+    #     key: venv-${{ runner.os }}-3.12-${{ hashFiles('**/poetry.lock') }}
 
     - name: 📚 Install Dependencies
       run: |
-        if [ "${{ steps.cached-poetry-dependencies.outputs.cache-hit }}" != "true" ]; then
-          echo "Installing dependencies from scratch..."
-          poetry install --with dev
-        else
-          echo "Using cached dependencies, ensuring they're complete..."
-          poetry install --with dev --no-root
-        fi
+        echo "🔧 Configuring Poetry..."
+        poetry config --list
+        echo "📂 Current directory:"
+        pwd
+        ls -la
+        echo "📋 Poetry show (before install):"
+        poetry show | head -10 || echo "No packages installed yet"
+        echo "📦 Installing all dependencies..."
+        poetry install --with dev --verbose
+        echo "📋 Poetry show (after install):"
+        poetry show | grep -E "(django|psycopg)" || echo "Dependencies not found"
+        echo "🧪 Verifying Django installation..."
+        poetry run python -c "import django; print(f'Django {django.VERSION} installed successfully')"
 
     - name: 🎨 Black Check
       run: poetry run black --check --diff .
@@ -100,22 +107,29 @@ jobs:
         virtualenvs-create: true
         virtualenvs-in-project: true
 
-    - name: 🔄 Load cached venv
-      id: cached-poetry-dependencies
-      uses: actions/cache@v4
-      with:
-        path: .venv
-        key: venv-${{ runner.os }}-3.12-${{ hashFiles('**/poetry.lock') }}
+    # Temporarily disable cache to ensure clean dependency installation
+    # - name: 🔄 Load cached venv
+    #   id: cached-poetry-dependencies  
+    #   uses: actions/cache@v4
+    #   with:
+    #     path: .venv
+    #     key: venv-${{ runner.os }}-3.12-${{ hashFiles('**/poetry.lock') }}
 
     - name: 📚 Install Dependencies
       run: |
-        if [ "${{ steps.cached-poetry-dependencies.outputs.cache-hit }}" != "true" ]; then
-          echo "Installing dependencies from scratch..."
-          poetry install --with dev
-        else
-          echo "Using cached dependencies, ensuring they're complete..."
-          poetry install --with dev --no-root
-        fi
+        echo "🔧 Configuring Poetry..."
+        poetry config --list
+        echo "📂 Current directory:"
+        pwd
+        ls -la
+        echo "📋 Poetry show (before install):"
+        poetry show | head -10 || echo "No packages installed yet"
+        echo "📦 Installing all dependencies..."
+        poetry install --with dev --verbose
+        echo "📋 Poetry show (after install):"
+        poetry show | grep -E "(django|psycopg)" || echo "Dependencies not found"
+        echo "🧪 Verifying Django installation..."
+        poetry run python -c "import django; print(f'Django {django.VERSION} installed successfully')"
 
     - name: 🧪 Run Tests
       run: |
