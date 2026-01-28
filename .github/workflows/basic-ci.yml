@@ -117,10 +117,6 @@ jobs:
           poetry install --with dev --no-root
         fi
 
-    - name: 🗃️ Run Migrations
-      run: |
-        poetry run python manage.py migrate --noinput
-
     - name: 🧪 Run Tests
       run: |
         poetry run pytest \

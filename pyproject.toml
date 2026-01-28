@@ -118,8 +118,7 @@ addopts = [
     "--verbose",
     "--tb=short", 
     "--strict-markers",
-    "--reuse-db",
-    "--nomigrations"
+    "--reuse-db"
 ]
 filterwarnings = [
     "ignore::django.utils.deprecation.RemovedInDjango50Warning",

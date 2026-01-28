@@ -7,25 +7,31 @@ import os
 
 from .settings import *
 
-# Database para testes
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": ":memory:",
+# Database para testes - usar PostgreSQL se disponível, senão SQLite
+DATABASE_URL = os.getenv('DATABASE_URL')
+if DATABASE_URL and 'postgresql' in DATABASE_URL:
+    # Usar PostgreSQL no CI
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'test_lacrei_saude',
+            'USER': 'postgres',
+            'PASSWORD': 'postgres',
+            'HOST': 'localhost',
+            'PORT': '5432',
+        }
     }
-}
+else:
+    # Usar SQLite para testes locais
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3", 
+            "NAME": ":memory:",
+        }
+    }
 
-
-# Desabilitar migrações para acelerar testes
-class DisableMigrations:
-    def __contains__(self, item):
-        return True
-
-    def __getitem__(self, item):
-        return None
-
-
-MIGRATION_MODULES = DisableMigrations()
+# Manter migrações habilitadas para garantir que as tabelas sejam criadas
+# MIGRATION_MODULES = {} # Comentado para permitir migrações
 
 # Email backend para testes
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
