@@ -35,13 +35,17 @@ jobs:
       uses: actions/cache@v4
       with:
         path: .venv
-        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+        key: venv-${{ runner.os }}-3.12-${{ hashFiles('**/poetry.lock') }}
 
     - name: 📚 Install Dependencies
-      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
       run: |
-        poetry install --no-root
-        poetry install
+        if [ "${{ steps.cached-poetry-dependencies.outputs.cache-hit }}" != "true" ]; then
+          echo "Installing dependencies from scratch..."
+          poetry install --with dev
+        else
+          echo "Using cached dependencies, ensuring they're complete..."
+          poetry install --with dev --no-root
+        fi
 
     - name: 🎨 Black Check
       run: poetry run black --check --diff .
@@ -101,13 +105,17 @@ jobs:
       uses: actions/cache@v4
       with:
         path: .venv
-        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+        key: venv-${{ runner.os }}-3.12-${{ hashFiles('**/poetry.lock') }}
 
     - name: 📚 Install Dependencies
-      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
       run: |
-        poetry install --no-root
-        poetry install
+        if [ "${{ steps.cached-poetry-dependencies.outputs.cache-hit }}" != "true" ]; then
+          echo "Installing dependencies from scratch..."
+          poetry install --with dev
+        else
+          echo "Using cached dependencies, ensuring they're complete..."
+          poetry install --with dev --no-root
+        fi
 
     - name: 🗃️ Run Migrations
       run: |
